@@ -27,33 +27,57 @@ do
 		realpath=$path
 		realexe=$exe
 	fi
-	echo $realpath >> compileDatapath  
-	echo $realexe >> exeFile
+	echo "$realpath" >> compileDatapath  
+	echo "$realexe" >> exeFile
 done
 
-count=0
+count=1
 
-echo -n > Result
-cat $1 | while read line
+echo  > Result
+
+line=$(sed -n "$count p" $1)
+
+printf "EOF" >> compileDatapath
+echo >>"$1"
+echo EOF >> "$1"
+
+while :
+
 do
-    echo "test $count data"
+    echo "test $count data $line"
     count=$(($count+1))
     echo ------------------------------ >> Result
-    echo $line >>Result
+    echo "$line" >>Result
     echo ------------------------------ >> Result
-    s=0
-	cat compileDatapath | while read road
+    s=1
+    road=$(sed -n "$s p" compileDatapath)
+	while :
+
 	do	
-  		s=$(($s+1))
-		echo test data $i for src $s
+
+		echo "test datafor src $s"
 		exe=$(sed -n "$s p" exeFile)
     		cd "$road"
                 name=(${road#*/})
                 real=(${name%%/*})
+		cop=$(echo "$line" | java "$exe")
 		printf "|%-10s|\t" $real >> $result
-    		echo $line | java "$exe" >> $result
+    		printf "%s\n" $cop >> $result
     		cd "$origin"   
+		s=$(($s+1))
+		road=$(sed -n "$s p" compileDatapath)
+  		if [ "$road" = "EOF" ]; then 
+			break
+		fi
 	done
+
+    line=$(sed -n "$count p" $1)
+    if [ "$line" = "EOF" ]; then
+	break
+    fi
 done
+
+tail -1 compileDatapath
+tail -1 "$1"
 rm findmain compileSrc compileDatapath exeFile Datapath
 open -e Result

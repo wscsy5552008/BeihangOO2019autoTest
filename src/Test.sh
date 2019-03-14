@@ -7,6 +7,8 @@ echo -n>compileDatapath
 origin=$(pwd)
 result=$origin"/Result"
 
+
+#get package name and update the Datapath file and compileSrc file
 i=0
 cat compileSrc | while read line
 
@@ -17,28 +19,33 @@ do
 	it=(${line##*/})
 	exe=(${it%.*})
 	
-	pac=$(grep -Go "package" "$line")
-	if [ "$pac" = "package" ]; then
-		realpatho=(${path%/*})
-		realpath=(${realpatho%/*})
-		ppp=(${realpatho##*/})
-		realexe=$ppp.$exe	
-	else
+	pac=$(grep -G "package" "$line")
+	if [ "$pac" = "" ]; then
 		realpath=$path
 		realexe=$exe
+	else
+		realPackage1=(${pac#* })
+		realPackage2=(${realPackage1%\;})
+		
+		packagePath=(${realPackage2%%.*})
+		paPath=/$packagePath/
+		realpath=(${path%"$paPath"*})
+		
+		realexe=$realPackage2.$exe
 	fi
+
 	echo "$realpath" >> compileDatapath  
 	echo "$realexe" >> exeFile
 done
 
+#main function
 count=1
 
-echo  > Result
+echo -n > Result
 
 line=$(sed -n "$count p" $1)
 
 printf "EOF" >> compileDatapath
-echo >>"$1"
 echo EOF >> "$1"
 
 while :
@@ -77,7 +84,7 @@ do
     fi
 done
 
-tail -1 compileDatapath
-tail -1 "$1"
+#delete the mid-file and mid-data
+$ sed -i '$d' "$1"
 rm findmain compileSrc compileDatapath exeFile Datapath
 open -e Result

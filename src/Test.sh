@@ -62,7 +62,7 @@ do
                 real=(${name%%/*})
 		cop=$(echo "$line" | java "$exe")
 		printf "|%-10s|\t" $real >> $result
-    		printf "%s\n" $cop >> $result
+    		printf "%s\n" "$cop" >> $result
     		cd "$origin"   
 		s=$(($s+1))
 		road=$(sed -n "$s p" compileDatapath)
